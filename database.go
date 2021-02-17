@@ -27,17 +27,26 @@ func provisionDatabase() {
 
 func createElementTypesTables() {
 	var (
-		err error
+		err   error
+		query string
 	)
 
-	query := `
+	query = `
 		CREATE TABLE IF NOT EXISTS element_types (
 			id INT AUTO_INCREMENT,
 			name VARCHAR(255) NOT NULL,
 
 			UNIQUE(name),
 			PRIMARY KEY(id)
-		)
+		);
+	`
+
+	if _, err = db.Exec(query); err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	query = `
+		INSERT IGNORE INTO element_types(name) values("password")
 	`
 
 	if _, err = db.Exec(query); err != nil {
@@ -54,6 +63,7 @@ func createElementTables() {
 		CREATE TABLE IF NOT EXISTS elements (
 			id INT PRIMARY KEY AUTO_INCREMENT,
 			element_type INT NOT NULL,
+			name VARCHAR(255) NOT NULL,
 			value LONGTEXT NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -63,6 +73,35 @@ func createElementTables() {
 	`
 
 	if _, err = db.Exec(query); err != nil {
+		log.Fatalln(err.Error())
+	}
+}
+
+func addElement(elementType string, elementName string, value string) {
+	var (
+		err           error
+		elementTypeID string
+		row           *sql.Row
+		query         string
+	)
+
+	query = `
+		SELECT id FROM element_types WHERE name = ?
+	`
+
+	row = db.QueryRow(query, elementType)
+
+	if err = row.Scan(&elementTypeID); err != nil {
+		log.Println()
+		log.Fatalln(err.Error())
+	}
+
+	query = `
+		INSERT INTO elements(element_type, name, value) values(?, ?, ?)
+	`
+
+	if _, err = db.Exec(query, elementTypeID, elementName, value); err != nil {
+		log.Println()
 		log.Fatalln(err.Error())
 	}
 }

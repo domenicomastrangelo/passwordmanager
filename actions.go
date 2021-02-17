@@ -28,7 +28,6 @@ func addPassword(element string) {
 		password          []byte
 		err               error
 		encryptedPassword []byte
-		decryptedPassword []byte
 	)
 
 	fmt.Println()
@@ -46,15 +45,7 @@ func addPassword(element string) {
 		fmt.Println(err.Error())
 	}
 
-	if decryptedPassword, _ = decrypt([]byte(userPasswordClear), encryptedPassword); err != nil {
-		fmt.Println()
-		fmt.Println(err.Error())
-	}
-
-	fmt.Println()
-	fmt.Println(string(base64Encode(encryptedPassword)))
-	fmt.Println(string(decryptedPassword))
-	fmt.Println()
+	addElement("password", string(element), string(base64Encode(encryptedPassword)))
 
 	saveElement(element, password)
 }

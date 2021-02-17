@@ -54,6 +54,8 @@ func main() {
 		execute(*action)
 	}
 
+	fmt.Println()
+	fmt.Println()
 	fmt.Println("Done!")
 }
 
