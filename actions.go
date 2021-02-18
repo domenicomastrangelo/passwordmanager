@@ -46,8 +46,6 @@ func addPassword(element string) {
 	}
 
 	addElement("password", string(element), string(base64Encode(encryptedPassword)))
-
-	saveElement(element, password)
 }
 
 func remove(elementType string, value string) bool {
@@ -65,8 +63,54 @@ func removePassword(element string) {
 	fmt.Println()
 }
 
+func get(elementType string, value string) bool {
+	switch elementType {
+	case "password":
+		getPassword(value)
+	}
+	return false
+}
+
+func getPassword(element string) {
+	var (
+		password []byte
+		err      error
+	)
+
+	fmt.Println()
+	fmt.Println("Getting password for: " + element)
+	fmt.Println()
+
+	fmt.Print("Please enter your password: ")
+
+	if password, err = terminal.ReadPassword(0); err != nil {
+		fmt.Println()
+		log.Fatalln("Could not read password from stdin")
+	}
+
+	base64EncodedPassword := []byte(getElements("password", element).Value)
+
+	if password, err = base64Decode(string(base64EncodedPassword)); err != nil {
+		fmt.Println()
+		log.Fatalln("Could not decode base64 encoded password")
+	}
+
+	if password, err = decrypt([]byte(userPasswordClear), password); err != nil {
+		fmt.Println()
+		log.Fatalln("Could not decode decrypt password")
+	}
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("Password is: " + string(password))
+}
+
 func base64Encode(key []byte) []byte {
 	return []byte(base64.StdEncoding.EncodeToString(key))
+}
+
+func base64Decode(key string) ([]byte, error) {
+	return base64.StdEncoding.DecodeString(key)
 }
 
 func sha256Hash(key []byte) []byte {
@@ -128,8 +172,4 @@ func decrypt(key, data []byte) ([]byte, error) {
 	}
 
 	return plaintext, nil
-}
-
-func saveElement(element string, value []byte) {
-
 }

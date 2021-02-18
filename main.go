@@ -22,6 +22,7 @@ func init() {
 	actions = make(map[string]int)
 	actions["add"] = 0
 	actions["remove"] = 1
+	actions["get"] = 1
 
 	elements = make(map[string]int)
 	elements["password"] = 0
@@ -54,7 +55,6 @@ func main() {
 		execute(*action)
 	}
 
-	fmt.Println()
 	fmt.Println()
 	fmt.Println("Done!")
 }
@@ -92,5 +92,7 @@ func execute(action string) {
 		add(*elementType, *element)
 	case "remove":
 		remove(*elementType, *element)
+	case "get":
+		get(*elementType, *element)
 	}
 }
