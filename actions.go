@@ -79,14 +79,6 @@ func getPassword(element string) {
 
 	fmt.Println()
 	fmt.Println("Getting password for: " + element)
-	fmt.Println()
-
-	fmt.Print("Please enter your password: ")
-
-	if password, err = terminal.ReadPassword(0); err != nil {
-		fmt.Println()
-		log.Fatalln("Could not read password from stdin")
-	}
 
 	base64EncodedPassword := []byte(getElements("password", element).Value)
 
@@ -100,7 +92,6 @@ func getPassword(element string) {
 		log.Fatalln("Could not decode decrypt password")
 	}
 
-	fmt.Println()
 	fmt.Println()
 	fmt.Println("Password is: " + string(password))
 }
