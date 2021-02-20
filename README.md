@@ -18,6 +18,8 @@ go run . -action=get -element=github.com
 Please enter your username: username
 Please enter your password: password
 
+Getting element for: github.com
+
 Element is: username|password
 
 Element is: anotherusername|anotherpassword
