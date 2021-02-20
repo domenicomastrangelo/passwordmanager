@@ -9,6 +9,7 @@ import (
 )
 
 var (
+	username          string
 	userPasswordClear string
 	dbPath            *string
 	action            *string
@@ -32,7 +33,6 @@ func main() {
 	checkArgs()
 
 	var (
-		username []byte
 		password []byte
 		err      error
 	)
@@ -51,7 +51,7 @@ func main() {
 
 	fmt.Println()
 
-	if checkPassword(password) {
+	if checkUser([]byte(username), password) {
 		execute(*action)
 	}
 
@@ -78,12 +78,6 @@ func checkArgs() {
 	if len(*element) <= 0 {
 		log.Fatalln("Missing element")
 	}
-}
-
-func checkPassword(password []byte) bool {
-	userPasswordClear = string(password)
-
-	return true
 }
 
 func execute(action string) {

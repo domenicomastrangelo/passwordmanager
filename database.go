@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -26,6 +27,7 @@ func init() {
 }
 
 func provisionDatabase() {
+	createUsersTables()
 	createElementTypesTables()
 	createElementTables()
 }
@@ -67,13 +69,35 @@ func createElementTables() {
 	query := `
 		CREATE TABLE IF NOT EXISTS elements (
 			id INT PRIMARY KEY AUTO_INCREMENT,
+			user_id INT NOT NULL,
 			element_type INT NOT NULL,
 			name VARCHAR(255) NOT NULL,
 			value LONGTEXT NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-			FOREIGN KEY(element_type) REFERENCES element_types(id)
+			FOREIGN KEY(element_type) REFERENCES element_types(id),
+			FOREIGN KEY(user_id) REFERENCES users(id)
+		)
+	`
+
+	if _, err = db.Exec(query); err != nil {
+		log.Fatalln(err.Error())
+	}
+}
+
+func createUsersTables() {
+	var (
+		err error
+	)
+
+	query := `
+		CREATE TABLE IF NOT EXISTS users (
+			id INT PRIMARY KEY AUTO_INCREMENT,
+			name VARCHAR(255) NOT NULL,
+			password VARCHAR(255) NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 		)
 	`
 
@@ -101,11 +125,13 @@ func addElement(elementType string, elementName string, value string) {
 		log.Fatalln(err.Error())
 	}
 
+	userID := getUserID()
+
 	query = `
-		INSERT INTO elements(element_type, name, value) values(?, ?, ?)
+		INSERT INTO elements(element_type, user_id, name, value) values(?, ?, ?, ?)
 	`
 
-	if _, err = db.Exec(query, elementTypeID, elementName, value); err != nil {
+	if _, err = db.Exec(query, elementTypeID, userID, elementName, value); err != nil {
 		log.Println()
 		log.Fatalln(err.Error())
 	}
@@ -143,4 +169,90 @@ func getElements(elementType string, elementName string) elementData {
 	}
 
 	return ed
+}
+
+func getUserID() string {
+	var (
+		err    error
+		userID string
+		row    *sql.Row
+		query  string
+	)
+
+	query = `
+		SELECT id FROM users WHERE name = ?
+	`
+
+	row = db.QueryRow(query, username)
+
+	if err = row.Scan(&userID); err != nil {
+		log.Println()
+		log.Fatalln(err.Error())
+	}
+
+	return userID
+}
+
+func checkUser(username []byte, password []byte) bool {
+	userPasswordClear = string(password)
+
+	var (
+		err               error
+		pass              string
+		decodedPassword   []byte
+		encryptedPassword []byte
+		row               *sql.Row
+		query             string
+	)
+
+	query = `
+		SELECT password FROM users WHERE name = ?
+	`
+
+	row = db.QueryRow(query, username)
+
+	if err = row.Scan(&pass); err == sql.ErrNoRows {
+		fmt.Println()
+		log.Println("Could not find user")
+		log.Println("Creating it")
+
+		if encryptedPassword, err = encrypt(password, password); err != nil {
+			log.Println()
+			log.Fatalln(err.Error())
+		}
+
+		pass = string(base64Encode(encryptedPassword))
+
+		createUser(username, pass)
+	} else if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	if decodedPassword, err = base64Decode(pass); err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	if _, err = decrypt(password, []byte(decodedPassword)); err != nil {
+		fmt.Println()
+		log.Println("Login failed")
+		return false
+	}
+
+	return true
+}
+
+func createUser(username []byte, password string) {
+	var (
+		err   error
+		query string
+	)
+
+	query = `
+		INSERT INTO users(name, password) values(?, ?)
+	`
+
+	if _, err = db.Exec(query, username, password); err != nil {
+		log.Println()
+		log.Fatalln(err.Error())
+	}
 }
