@@ -34,7 +34,7 @@ func addPassword(element string) {
 	fmt.Println("Adding password for: " + element)
 	fmt.Println()
 
-	fmt.Print("Please enter your password: ")
+	fmt.Print("Please enter your element: ")
 
 	if password, err = terminal.ReadPassword(0); err != nil {
 		log.Fatalln("Could not read password from stdin")
@@ -78,7 +78,7 @@ func getPassword(element string) {
 	)
 
 	fmt.Println()
-	fmt.Println("Getting password for: " + element)
+	fmt.Println("Getting element for: " + element)
 
 	rowElements := getElements("password", element)
 
@@ -96,7 +96,7 @@ func getPassword(element string) {
 		}
 
 		fmt.Println()
-		fmt.Println("Password is: " + string(password))
+		fmt.Println("Element is: " + string(password))
 	}
 }
 
