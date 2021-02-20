@@ -80,20 +80,24 @@ func getPassword(element string) {
 	fmt.Println()
 	fmt.Println("Getting password for: " + element)
 
-	base64EncodedPassword := []byte(getElements("password", element).Value)
+	rowElements := getElements("password", element)
 
-	if password, err = base64Decode(string(base64EncodedPassword)); err != nil {
+	for _, rowElement := range rowElements {
+		base64EncodedPassword := []byte(rowElement.Value)
+
+		if password, err = base64Decode(string(base64EncodedPassword)); err != nil {
+			fmt.Println()
+			log.Fatalln("Could not decode base64 encoded password")
+		}
+
+		if password, err = decrypt([]byte(userPasswordClear), password); err != nil {
+			fmt.Println()
+			log.Fatalln("Could not decode decrypt password")
+		}
+
 		fmt.Println()
-		log.Fatalln("Could not decode base64 encoded password")
+		fmt.Println("Password is: " + string(password))
 	}
-
-	if password, err = decrypt([]byte(userPasswordClear), password); err != nil {
-		fmt.Println()
-		log.Fatalln("Could not decode decrypt password")
-	}
-
-	fmt.Println()
-	fmt.Println("Password is: " + string(password))
 }
 
 func base64Encode(key []byte) []byte {

@@ -137,13 +137,15 @@ func addElement(elementType string, elementName string, value string) {
 	}
 }
 
-func getElements(elementType string, elementName string) elementData {
+func getElements(elementType string, elementName string) []elementData {
 	var (
 		err           error
 		elementTypeID string
 		row           *sql.Row
+		rows          *sql.Rows
 		query         string
-		ed            elementData
+		edSingle      elementData
+		ed            []elementData
 	)
 
 	query = `
@@ -158,14 +160,22 @@ func getElements(elementType string, elementName string) elementData {
 	}
 
 	query = `
-		SELECT name, value FROM elements where element_type = ? and name = ?
+		SELECT name, value FROM elements where element_type = ? and name = ? and user_id = ?
 	`
 
-	row = db.QueryRow(query, elementTypeID, elementName)
-
-	if err = row.Scan(&ed.Name, &ed.Value); err != nil {
+	if rows, err = db.Query(query, elementTypeID, elementName, getUserID()); err != nil {
 		log.Println()
 		log.Fatalln(err.Error())
+	}
+
+	for rows.Next() {
+
+		if err = rows.Scan(&edSingle.Name, &edSingle.Value); err != nil {
+			log.Println()
+			log.Fatalln(err.Error())
+		}
+
+		ed = append(ed, edSingle)
 	}
 
 	return ed
